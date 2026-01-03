@@ -100,6 +100,21 @@ h6 {
         .datatable-container {
     overflow: scroll;
 }
+
+/*--------------------------------------------------------------
+# Pagination
+--------------------------------------------------------------*/
+
+.active>.page-link, .page-link.active {
+    z-index: 3;
+    color: #fff !important;
+    background-color: #000000;
+    border-color: #000000;
+}
+.page-link {
+
+  color:#000 !important;
+}
 /*--------------------------------------------------------------
 # Page Title
 --------------------------------------------------------------*/

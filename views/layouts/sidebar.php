@@ -50,7 +50,7 @@ $module_icons = [
                 <ul class="submenu flyout">
                     <?php foreach ($pages as $page): ?>
                         <li>
-                            <a href="<?= $page['link']; ?>" title="<?= $page['name']; ?>">
+                            <a href="<?= BASE_PATH ?><?= $page['link']; ?>" title="<?= $page['name']; ?>">
                                 <i class="<?= $page['icon']; ?>" style="font-size:25px;padding-right:15px;"></i>
                                 <?= $page['name']; ?>
                             </a>

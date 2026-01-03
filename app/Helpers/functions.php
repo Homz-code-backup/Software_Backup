@@ -38,7 +38,7 @@ if (!function_exists('view')) {
     {
         // Convert 'auth.login' to 'auth/login'
         $viewPath = str_replace('.', '/', $path);
-        
+
         // 1. Prepare data
         if (!empty($data)) {
             extract($data);
@@ -56,21 +56,35 @@ if (!function_exists('view')) {
             // If a layout is specified, we render the layout.
             // The layout file is responsible for including the $viewPath.
             // We pass $view (the absolute path to the content view) to the layout.
-            
+
             $layoutPath = __DIR__ . '/../../views/layouts/' . $layout . '.php';
-            
+
             if (!file_exists($layoutPath)) {
                 die("Layout file not found: $layout");
             }
 
             // The layout file will include $view
-            $view = $fullPath; 
+            $view = $fullPath;
             require $layoutPath;
-
         } else {
             // No layout, just render the view directly
             require $fullPath;
         }
+    }
+}
+
+if (!function_exists('renderView')) {
+    function renderView($path, $data = [])
+    {
+        $viewPath = str_replace('.', '/', $path);
+        if (!empty($data)) extract($data);
+        $fullPath = __DIR__ . '/../../views/' . $viewPath . '.php';
+
+        if (!file_exists($fullPath)) return '';
+
+        ob_start();
+        require $fullPath;
+        return ob_get_clean();
     }
 }
 

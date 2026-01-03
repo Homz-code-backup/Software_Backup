@@ -136,3 +136,15 @@ Our models represent entities and their internal rules.
 
 ---
 *The ERP v2 structure is built for scalability and maintainability. When in doubt, follow existing patterns in `EmployeeController`.*
+
+
+
+
+| Scenario                     | Use         |
+| ---------------------------- | ----------- |
+| Button click (status change) | `erpAjax()` |
+| Delete icon                  | `erpAjax()` |
+| Approve / Reject             | `erpAjax()` |
+| Simple form                  | Auto AJAX   |
+| File upload                  | Manual AJAX |
+| Multi-step form              | Manual AJAX |

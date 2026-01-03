@@ -11,3 +11,4 @@ class Employee extends Model
         return $parts[0];
     }
 }
+ 

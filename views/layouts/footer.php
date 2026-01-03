@@ -25,3 +25,6 @@
 
   <!-- Template Main JS File -->
   <script src="<?= BASE_PATH ?>/public/assets/js/main.js"></script>
+  <script src="<?= BASE_PATH ?>/public/js/erp_ajax.js"></script>
+  <script src="<?= BASE_PATH ?>/public/js/erp_form_ajax.js"></script>
+  <script src="<?= BASE_PATH ?>/public/js/erp-advanced-table.js"></script>

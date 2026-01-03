@@ -39,8 +39,12 @@ route('GET',  '/reset-password', 'AuthController@resetForm');
 route('POST', '/reset-password', 'AuthController@resetPassword');
 route('GET',  '/employees/create', 'EmployeeController@create');
 route('POST', '/employees/store',  'EmployeeController@store');
+route('POST', '/employees/statusupdate','EmployeeController@statusUpdate');
 route('GET',  '/employees', 'EmployeeController@index');
- 
+route('GET', '/employees/view/{id}', 'EmployeeController@view');
+route('GET', '/api/employees', 'EmployeeController@apiEmployees');
+
+
 route('GET',  '/superadmin/assign-permissions', 'SuperAdminPermissionController@index');
 route('POST', '/superadmin/assign-permissions', 'SuperAdminPermissionController@store');
 
@@ -48,5 +52,6 @@ route('GET',  '/superadmin/manage-permissions', 'SuperAdminManagePermissionContr
 route('POST', '/superadmin/manage-permissions/page', 'SuperAdminManagePermissionController@pageAction');
 route('POST', '/superadmin/manage-permissions/sub',  'SuperAdminManagePermissionController@subAction');
 
-http_response_code(404);
+
+http_response_code(404); 
 echo "404 - Page Not Found";
