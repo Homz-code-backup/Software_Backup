@@ -1,0 +1,50 @@
+# Vendor dependencies
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Cache
+cache/
+*.cache
+
+# Uploaded files (if any)
+uploads/
+public/uploads/
+
+# Node modules (if using any frontend build tools)
+node_modules/
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# Database files (if any local SQLite)
+*.sqlite
+*.db
+
+# Session files
+sessions/
+
+# Backup files
+*.bak
+*.backup
