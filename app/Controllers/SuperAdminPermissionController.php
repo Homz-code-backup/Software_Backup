@@ -13,10 +13,14 @@ class SuperAdminPermissionController
 
         view('superadmin/assign_permissions', [
             'employees'      => $service->getEmployees(),
-            'pagesByModule'  => $service->getPagesGrouped(), 
+            'pagesByModule'  => $service->getPagesGrouped(),
             'subPermissions' => $service->getSubPermissions(),
             'userPages'      => $service->getUserPageAssignments(),
             'userSubs'       => $service->getUserSubAssignments(),
+            'cities'         => $service->getCities(),
+            'branches'       => $service->getBranches(),
+            'userCities'     => $service->getUserCitiesAssignments(),
+            'userBranches'   => $service->getUserBranchesAssignments(),
         ], 'app');
     }
 

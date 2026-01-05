@@ -4,7 +4,7 @@ class PermissionService
     private static bool $loaded = false;
     private static array $pages = [];
     private static array $actions = [];
- 
+
     private static function load(): void
     {
         if (self::$loaded || !isset($_SESSION['user_employee_id'])) {
@@ -16,7 +16,7 @@ class PermissionService
         self::$pages = $repo->getPagePermissions($_SESSION['user_employee_id']);
         self::$actions = $repo->getSubPermissions($_SESSION['user_employee_id']);
         self::$loaded = true;
-    } 
+    }
 
     public static function hasPage(string $slug): bool
     {
@@ -24,15 +24,15 @@ class PermissionService
         return in_array($slug, self::$pages, true);
     }
 
-    public static function hasAction(string $slug): bool 
+    public static function hasAction(string $slug): bool
     {
         //slug format: estimate.add
-        $slug = str_replace('.', '/', $slug);   
+        $slug = str_replace('.', '/', $slug);
         $page = explode('/', $slug)[0];
         $action = explode('/', $slug)[1];
         if (in_array($page, self::$pages)) {
             return in_array($action, self::$actions);
-        }else{
+        } else {
             return false;
         }
     }

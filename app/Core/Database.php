@@ -7,7 +7,7 @@ if (!defined('ENVIRONMENT')) {
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     define(
         'ENVIRONMENT',
-        ($host === 'localhost' || $host === '127.0.0.1') 
+        ($host === 'localhost' || $host === '127.0.0.1')
             ? 'local'
             : 'live'
     );

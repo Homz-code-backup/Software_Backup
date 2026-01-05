@@ -12,7 +12,7 @@ class AuthService
 
     /* ======================
        LOGIN
-    ======================= */
+    ======================= */ 
 
     public function login(string $email, string $password): bool
     { 

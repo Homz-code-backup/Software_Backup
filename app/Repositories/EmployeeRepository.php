@@ -9,7 +9,7 @@ class EmployeeRepository
         $this->db = Database::getConnection();
     }
 
-    public function getAll(array $status): array
+     public function getAll(array $status): array
     {
         // Create placeholders like ?, ?
         $placeholders = implode(',', array_fill(0, count($status), '?'));

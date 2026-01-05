@@ -12,7 +12,7 @@ class PermissionAdminRepository
     public function getActiveEmployees(): array
     {
         return $this->pdo
-            ->query("SELECT users.employee_id, employee.full_name FROM employee 
+            ->query("SELECT users.id as user_id, users.employee_id, employee.full_name FROM employee 
             LEFT JOIN users ON employee.employee_id = users.employee_id            
             WHERE users.status='Active'")
             ->fetchAll(PDO::FETCH_ASSOC);
@@ -67,13 +67,67 @@ class PermissionAdminRepository
         return $out;
     }
 
-    public function updatePermissions(string $empId, array $pages, array $subs): void
+    public function getCities(): array
+    {
+        return $this->pdo->query("SELECT id, name FROM cities ORDER BY name ASC")
+            ->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getBranches(): array
+    {
+        return $this->pdo->query("SELECT id, branch_name as name FROM branch ORDER BY branch_name ASC")
+            ->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getUserCitiesAssignments(): array
+    {
+        $rows = $this->pdo->query("SELECT user_id, city_id FROM user_cities")
+            ->fetchAll(PDO::FETCH_ASSOC);
+        $out = [];
+        foreach ($rows as $r) {
+            $out[$r['user_id']][] = $r['city_id'];
+        }
+        return $out;
+    }
+
+    public function getUserBranchesAssignments(): array
+    {
+        $rows = $this->pdo->query("SELECT user_id, branch_id FROM user_branches")
+            ->fetchAll(PDO::FETCH_ASSOC);
+        $out = [];
+        foreach ($rows as $r) {
+            $out[$r['user_id']][] = $r['branch_id'];
+        }
+        return $out;
+    }
+
+    public function updatePermissions(string $empId, array $pages, array $subs, array $cities = [], array $branches = []): void
     {
         $this->pdo->prepare("DELETE FROM page_permissions WHERE employee_id=?")
             ->execute([$empId]);
 
         $this->pdo->prepare("DELETE FROM sub_permission_assignments WHERE employee_id=?")
             ->execute([$empId]);
+
+        // Get user_id for user_cities and user_branches
+        $stmt = $this->pdo->prepare("SELECT id FROM users WHERE employee_id = ?");
+        $stmt->execute([$empId]);
+        $userId = $stmt->fetchColumn();
+
+        if ($userId) {
+            $this->pdo->prepare("DELETE FROM user_cities WHERE user_id=?")->execute([$userId]);
+            $this->pdo->prepare("DELETE FROM user_branches WHERE user_id=?")->execute([$userId]);
+
+            foreach ($cities as $cId) {
+                $this->pdo->prepare("INSERT INTO user_cities (user_id, city_id) VALUES (?,?)")
+                    ->execute([$userId, $cId]);
+            }
+
+            foreach ($branches as $bId) {
+                $this->pdo->prepare("INSERT INTO user_branches (user_id, branch_id) VALUES (?,?)")
+                    ->execute([$userId, $bId]);
+            }
+        }
 
         foreach ($pages as $p) {
             $this->pdo->prepare(
@@ -88,53 +142,61 @@ class PermissionAdminRepository
         }
     }
     public function addPage(array $d): void
-{
-    $stmt = $this->pdo->prepare("
+    {
+        $stmt = $this->pdo->prepare("
         INSERT INTO pages (name,module,slug,icon,link)
         VALUES (?,?,?,?,?)
     ");
-    $stmt->execute([
-        $d['name'], $d['module'], $d['slug'], $d['icon'], $d['link']
-    ]);
-}
+        $stmt->execute([
+            $d['name'],
+            $d['module'],
+            $d['slug'],
+            $d['icon'],
+            $d['link']
+        ]);
+    }
 
-public function updatePage(array $d): void
-{
-    $stmt = $this->pdo->prepare("
+    public function updatePage(array $d): void
+    {
+        $stmt = $this->pdo->prepare("
         UPDATE pages SET name=?, module=?, slug=?, icon=?, link=?
         WHERE id=?
     ");
-    $stmt->execute([
-        $d['name'], $d['module'], $d['slug'], $d['icon'], $d['link'], $d['id']
-    ]);
-}
+        $stmt->execute([
+            $d['name'],
+            $d['module'],
+            $d['slug'],
+            $d['icon'],
+            $d['link'],
+            $d['id']
+        ]);
+    }
 
-public function deletePage(int $id): void
-{
-    $this->pdo->prepare("DELETE FROM pages WHERE id=?")->execute([$id]);
-}
+    public function deletePage(int $id): void
+    {
+        $this->pdo->prepare("DELETE FROM pages WHERE id=?")->execute([$id]);
+    }
 
-public function addSubPermission(array $d): void
-{
-    $stmt = $this->pdo->prepare("
+    public function addSubPermission(array $d): void
+    {
+        $stmt = $this->pdo->prepare("
         INSERT INTO sub_permissions (page_id, permission_name, slug)
         VALUES (?,?,?)
     ");
-    $stmt->execute([$d['page_id'], $d['permission_name'], $d['slug']]);
-}
+        $stmt->execute([$d['page_id'], $d['permission_name'], $d['slug']]);
+    }
 
-public function updateSubPermission(array $d): void
-{
-    $stmt = $this->pdo->prepare("
+    public function updateSubPermission(array $d): void
+    {
+        $stmt = $this->pdo->prepare("
         UPDATE sub_permissions SET permission_name=?, slug=?
         WHERE id=?
     ");
-    $stmt->execute([$d['permission_name'], $d['slug'], $d['id']]);
-}
+        $stmt->execute([$d['permission_name'], $d['slug'], $d['id']]);
+    }
 
-public function deleteSubPermission(int $id): void
-{
-    $this->pdo->prepare("DELETE FROM sub_permissions WHERE id=?")->execute([$id]);
-}
-
+    public function deleteSubPermission(int $id): void
+    {
+        $this->pdo->prepare("DELETE FROM sub_permissions WHERE id=?")->execute([$id]);
+    }
 }

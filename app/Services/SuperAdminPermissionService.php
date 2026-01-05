@@ -10,7 +10,7 @@ class SuperAdminPermissionService
         $this->repo = new PermissionAdminRepository();
         $this->employeeRepo = new EmployeeRepository();
     }
- 
+
     public function getEmployees(): array
     {
         return $this->repo->getActiveEmployees();
@@ -42,12 +42,35 @@ class SuperAdminPermissionService
     {
         return $this->repo->getUserSubAssignments();
     }
+
+    public function getCities(): array
+    {
+        return $this->repo->getCities();
+    }
+
+    public function getBranches(): array
+    {
+        return $this->repo->getBranches();
+    }
+
+    public function getUserCitiesAssignments(): array
+    {
+        return $this->repo->getUserCitiesAssignments();
+    }
+
+    public function getUserBranchesAssignments(): array
+    {
+        return $this->repo->getUserBranchesAssignments();
+    }
+
     public function update(array $data): void
     {
         $this->repo->updatePermissions(
             $data['employee_id'],
             $data['assigned_pages'] ?? [],
-            $data['assigned_sub_permissions'] ?? []
+            $data['assigned_sub_permissions'] ?? [],
+            $data['selected_cities'] ?? [],
+            $data['selected_branches'] ?? []
         );
 
         $employee = $this->employeeRepo->getEmployeeById($data['employee_id']);
@@ -57,11 +80,9 @@ class SuperAdminPermissionService
         (new NotificationService())->notifyUser(
             $_SESSION['user_id'],
             'System Notification',
-            'Permissions have been assigned to'.$employeeName,
+            'Permissions have been assigned to' . $employeeName,
             '/dashboard',
             'success'
         );
     }
-
-
 }

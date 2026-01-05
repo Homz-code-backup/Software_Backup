@@ -52,10 +52,10 @@ class Container
                 // Typed parameter (Dependency)
                 // Assuming reflection is NamedType (PHP 7/8 standard for single types)
                 if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
-                     $dependencies[] = $this->resolve($type->getName());
+                    $dependencies[] = $this->resolve($type->getName());
                 } else {
-                     // Primitives or built-ins without defaults
-                      if ($parameter->isDefaultValueAvailable()) {
+                    // Primitives or built-ins without defaults
+                    if ($parameter->isDefaultValueAvailable()) {
                         $dependencies[] = $parameter->getDefaultValue();
                     } else {
                         throw new Exception("Cannot resolve primitive dependency {$parameter->name}");

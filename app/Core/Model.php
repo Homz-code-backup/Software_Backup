@@ -15,7 +15,7 @@ abstract class Model
     /**
      * Get the database connection.
      */
-    protected static function getDb() 
+    protected static function getDb()
     {
         if (!self::$db) {
             self::$db = Database::getConnection();
@@ -70,7 +70,7 @@ abstract class Model
 
     /**
      * Get all records.
-     * @return static[]
+     * @return static[] 
      */
     public static function all()
     {
@@ -139,16 +139,16 @@ abstract class Model
     {
         $keys = array_keys($this->attributes);
         $placeholders = array_fill(0, count($keys), '?');
-        
+
         $sql = "INSERT INTO {$this->table} (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $placeholders) . ")";
         $stmt = self::getDb()->prepare($sql);
-        
+
         $success = $stmt->execute(array_values($this->attributes));
-        
+
         if ($success) {
             $this->attributes[$this->primaryKey] = self::getDb()->lastInsertId();
         }
-        
+
         return $success;
     }
 }

@@ -3,7 +3,7 @@ require_once __DIR__ . '/Helpers/SessionHelper.php';
 require_once __DIR__ . '/Helpers/functions.php';
 
 spl_autoload_register(function ($class) {
-   
+
 
     // 1. Handle Namespaced Classes (PSR-4 style relative to app/)
     $relativeClass = str_replace('\\', '/', $class);
@@ -25,15 +25,24 @@ spl_autoload_register(function ($class) {
     ];
 
     foreach ($paths as $path) {
-        // Only try this if it's not a namespaced class (no backslash) OR if the legacy structure relies on it
-        // The original code passed the full $class (which might contain backslashes) to the path.
-        // For standard "Class" it works.
-        // For "Namespace\Class", the original code created "Path/Namespace\Class.php" which usually fails.
-        // We keep this loop fallback for non-namespaced classes.
+        // 2a. Check direct file
         $file = $path . $class . '.php';
         if (file_exists($file)) {
             require_once $file;
             return;
+        }
+
+        // 2b. Check in subfolders (e.g., Services/Sales/EstimateService.php)
+        // This allows organizing files into modules like "Sales", "HR", etc.
+        if (is_dir($path)) {
+            $subfolders = glob($path . '*', GLOB_ONLYDIR);
+            foreach ($subfolders as $subfolder) {
+                $file = $subfolder . '/' . $class . '.php';
+                if (file_exists($file)) {
+                    require_once $file;
+                    return;
+                }
+            }
         }
     }
 });

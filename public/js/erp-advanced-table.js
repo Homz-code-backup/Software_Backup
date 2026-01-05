@@ -84,23 +84,46 @@ window.erpTable = {
         </li>
     `;
 
-    // Calculate range
-    let start = Math.max(1, current - Math.floor(maxVisible / 2));
-    let end = start + maxVisible - 1;
+    // Page numbers with ellipsis
+    const pages = [];
+    const delta = 2;
 
-    if (end > total) {
-      end = total;
-      start = Math.max(1, end - maxVisible + 1);
+    for (let i = 1; i <= total; i++) {
+      if (
+        i === 1 ||
+        i === total ||
+        (i >= current - delta && i <= current + delta)
+      ) {
+        pages.push(i);
+      }
     }
 
-    // Page numbers
-    for (let i = start; i <= end; i++) {
+    let last = null;
+    for (let i of pages) {
+      if (last !== null) {
+        if (i - last === 2) {
+          const p = last + 1;
+          ul.innerHTML += `
+                <li class="page-item ${p === current ? "active" : ""}">
+                    <a class="page-link" href="#"
+                       onclick="erpTable.page('${id}', ${p})">${p}</a>
+                </li>
+            `;
+        } else if (i - last > 2) {
+          ul.innerHTML += `
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            `;
+        }
+      }
       ul.innerHTML += `
             <li class="page-item ${i === current ? "active" : ""}">
                 <a class="page-link" href="#"
                    onclick="erpTable.page('${id}', ${i})">${i}</a>
             </li>
         `;
+      last = i;
     }
 
     // Next

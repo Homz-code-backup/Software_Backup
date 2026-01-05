@@ -5,10 +5,8 @@ class User extends Model
 
     // Optional: Add custom logic
     public function getActiveStatus()
-    { 
+    {
         return $this->status === 'Active';
     }
-    
-    
 }
  

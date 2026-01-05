@@ -22,7 +22,7 @@ class PermissionRepository
         $stmt->execute([$employeeId]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
- 
+
     /**
      * Get action permissions (sub permissions)
      */
