@@ -25,7 +25,7 @@
 
 <?php
 $tableConfig = [
-    'id' => 'salesTable',
+    'id' => 'salesTable', 
     'title' => 'Estimates', 
 
     'columns' => [
@@ -74,7 +74,6 @@ $tableConfig = [
 
 include __DIR__ . '/../components/advanced-table.php';
 ?>
-
 <script>
     function switchTab(status) {
         erpTable.filter('salesTable', 'active_status', [status]);

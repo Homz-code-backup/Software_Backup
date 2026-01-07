@@ -13,7 +13,6 @@ class EstimateRepository
         $page    = max(1, (int)($p['page'] ?? 1));
         $perPage = max(1, (int)($p['limit'] ?? 10));
         $offset  = ($page - 1) * $perPage;
-
         $where = [];
         $params = [];
 
@@ -32,7 +31,15 @@ class EstimateRepository
 
         if (!empty($p['branch_id'])) {
             $where[] = "pc.branch_id = ?";
-            $params[] = $p['branch_id'];
+            $params[] = $p['branch_id']; 
+        }
+
+        if(!empty($p['user_branches'])) {
+            $where[] = "pc.branch_id IN (" . implode(',', array_map(fn($b) => (int)$b['branch_id'], $p['user_branches'])) . ")";
+        }
+
+        if(!empty($p['user_cities'])) {
+            $where[] = "pc.city IN (" . implode(',', array_map(fn($c) => (int)$c['city_id'], $p['user_cities'])) . ")";
         }
 
         if (!empty($p['active_status'])) {
@@ -90,6 +97,17 @@ class EstimateRepository
     {
         $stmt = $this->db->prepare("SELECT * FROM project_customers  ORDER BY id DESC;");
         $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    function getUserBranches($sub_id=null){
+        $stmt = $this->db->prepare("SELECT * FROM user_branches WHERE user_id = ? AND sub_permission_id = ?");
+        $stmt->execute([Auth::user()->id, $sub_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    function getUserCities($sub_id=null){
+        $stmt = $this->db->prepare("SELECT * FROM user_cities WHERE user_id = ? AND sub_permission_id = ?");
+        $stmt->execute([Auth::user()->id, $sub_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

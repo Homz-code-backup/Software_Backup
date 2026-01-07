@@ -2,7 +2,7 @@
 class EstimateController
 {
     private EstimateService $service;
-
+ 
     public function __construct(EstimateService $service)
     {
         $this->service = $service;

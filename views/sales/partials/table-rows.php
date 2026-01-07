@@ -15,7 +15,7 @@ foreach ($rows as $pc): ?>
         <td class='col-branch_name'><?= $pc['branch_name'] ?></td>
         <td class='col-city_name'><?= $pc['city_name'] ?></td>
         <td class='col-status'><?= $pc['status'] ?></td>
-        <td>
+        <td> 
             <div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle p-1" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false">

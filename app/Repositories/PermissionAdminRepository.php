@@ -81,7 +81,7 @@ class PermissionAdminRepository
 
     public function getUserCitiesAssignments(): array
     {
-        $rows = $this->pdo->query("SELECT user_id, city_id FROM user_cities")
+        $rows = $this->pdo->query("SELECT user_id, city_id, sub_permission_id FROM user_cities")
             ->fetchAll(PDO::FETCH_ASSOC);
         $out = [];
         foreach ($rows as $r) {
@@ -92,7 +92,7 @@ class PermissionAdminRepository
 
     public function getUserBranchesAssignments(): array
     {
-        $rows = $this->pdo->query("SELECT user_id, branch_id FROM user_branches")
+        $rows = $this->pdo->query("SELECT user_id, branch_id, sub_permission_id FROM user_branches")
             ->fetchAll(PDO::FETCH_ASSOC);
         $out = [];
         foreach ($rows as $r) {
@@ -115,17 +115,17 @@ class PermissionAdminRepository
         $userId = $stmt->fetchColumn();
 
         if ($userId) {
-            $this->pdo->prepare("DELETE FROM user_cities WHERE user_id=?")->execute([$userId]);
-            $this->pdo->prepare("DELETE FROM user_branches WHERE user_id=?")->execute([$userId]);
+            $this->pdo->prepare("DELETE FROM user_cities WHERE user_id=? AND sub_permission_id=14")->execute([$userId]);
+            $this->pdo->prepare("DELETE FROM user_branches WHERE user_id=? AND sub_permission_id=14")->execute([$userId]);
 
             foreach ($cities as $cId) {
-                $this->pdo->prepare("INSERT INTO user_cities (user_id, city_id) VALUES (?,?)")
-                    ->execute([$userId, $cId]);
+                $this->pdo->prepare("INSERT INTO user_cities (user_id, city_id, sub_permission_id) VALUES (?,?,?)")
+                    ->execute([$userId, $cId, 14]);
             }
 
             foreach ($branches as $bId) {
-                $this->pdo->prepare("INSERT INTO user_branches (user_id, branch_id) VALUES (?,?)")
-                    ->execute([$userId, $bId]);
+                $this->pdo->prepare("INSERT INTO user_branches (user_id, branch_id, sub_permission_id) VALUES (?,?,?)")
+                    ->execute([$userId, $bId, 14]);
             }
         }
 

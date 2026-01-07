@@ -232,7 +232,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Select Load Permission Scope</h5>
+                <h5 class="modal-title">Select <span id="modalSubPermissionName" class="text-primary"></span> Scope</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -380,7 +380,8 @@
             const subId = parseInt(s.value);
 
             if (s.checked && subId === LOAD_PERMISSION_ID) {
-                openLoadPermissionModal();
+                const subName = s.nextElementSibling.textContent.trim();
+                openLoadPermissionModal(subId, subName);
             }
 
             document.getElementById('page' + page).checked =
@@ -391,7 +392,8 @@
     });
 
     /* Load Permission Modal Logic */
-    function openLoadPermissionModal() {
+    function openLoadPermissionModal(subId, subName) {
+        document.getElementById('modalSubPermissionName').textContent = subName;
         // Reset modal UI based on current selections
         const hasCities = document.querySelectorAll('.city-scope-checkbox:checked').length > 0;
         const hasBranches = document.querySelectorAll('.branch-scope-checkbox:checked').length > 0;
@@ -415,7 +417,8 @@
         document.getElementById('branchSelection').classList.toggle('hidden', scope !== 'branch');
 
         if (scope === 'all') {
-            document.querySelectorAll('.city-scope-checkbox, .branch-scope-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.branch-scope-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.city-scope-checkbox').forEach(cb => cb.checked = true);
         } else if (scope === 'city') {
             document.querySelectorAll('.branch-scope-checkbox').forEach(cb => cb.checked = false);
         } else if (scope === 'branch') {

@@ -25,7 +25,7 @@ function route($method, $path, $handler)
 
         // Resolve using the short class name
         $container = new Container();
-        $instance = $container->resolve($controllerClassName);
+        $instance = $container->resolve($controllerClassName); 
 
         $instance->$action();
         exit;
