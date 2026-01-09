@@ -5,7 +5,7 @@ foreach ($rows as $pc): ?>
         <td class='col-sno'><?= $sno++ ?></td>
         <td class='col-id'><?= $pc['project_reference'] ?></td>
         <td class='col-name'>
-            <a class='btn btn-link text-black p-0' href="<?= BASE_PATH ?>/sales/view/<?= $pc['id'] ?>">
+            <a class='btn btn-link text-black p-0 fw-bold' href="<?= BASE_PATH ?>/projects/view/<?= $pc['token'] ?>">
                 <?= $pc['name'] ?>
             </a>
         </td>
@@ -15,7 +15,7 @@ foreach ($rows as $pc): ?>
         <td class='col-branch_name'><?= $pc['branch_name'] ?></td>
         <td class='col-city_name'><?= $pc['city_name'] ?></td>
         <td class='col-status'><?= $pc['status'] ?></td>
-        <td> 
+        <td>
             <div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle p-1" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false">
@@ -23,17 +23,22 @@ foreach ($rows as $pc): ?>
                 </button>
                 <ul class="dropdown-menu">
                     <li>
-                        <a class="dropdown-item" href="<?= BASE_PATH ?>/sales/view/<?= $pc['id'] ?>">
-                            <i class="bi bi-eye"></i> View
+                        <a class="dropdown-item" href="<?= BASE_PATH ?>/projects/view/<?= $pc['token'] ?>">
+                            <i class="bi bi-eye"></i> View Project
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" onclick="editProject('<?= $pc['token'] ?>')">
+                            <i class="bi bi-pencil"></i> Edit Project
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href="<?= BASE_PATH ?>/sales/edit/<?= $pc['id'] ?>">
-                            <i class="bi bi-pencil"></i> Edit
+                            <i class="bi bi-file-earmark-plus"></i> Edit Estimate
                         </a>
                     </li>
                 </ul>
             </div>
         </td>
-    </tr> 
+    </tr>
 <?php endforeach; ?>

@@ -9,7 +9,7 @@ class EmployeeRepository
         $this->db = Database::getConnection();
     }
 
-     public function getAll(array $status): array
+    public function getAll(array $status): array
     {
         // Create placeholders like ?, ?
         $placeholders = implode(',', array_fill(0, count($status), '?'));
@@ -263,5 +263,16 @@ class EmployeeRepository
             $status,
             $id
         ]);
+    }
+
+    public function getActiveEmployees(): array
+    {
+        return $this->db->query("
+            SELECT e.employee_id, e.full_name, e.job_position 
+            FROM employee e 
+            JOIN users u ON e.employee_id = u.employee_id 
+            WHERE u.status = 'Active' 
+            ORDER BY e.full_name ASC
+        ")->fetchAll(PDO::FETCH_ASSOC);
     }
 }

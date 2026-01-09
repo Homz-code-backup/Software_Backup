@@ -32,9 +32,21 @@ class SuperAdminManagePermissionService
     public function getModules(): array
     {
         return [
-            'HR','Sales','My HR','Presales','Management','Designers',
-            'Marketing','CRM','Operations','Accounts','Purchase',
-            'IT','Architects','Admin','Manager'
+            'HR',
+            'Sales',
+            'My HR',
+            'Presales',
+            'Management',
+            'Designers',
+            'Marketing',
+            'CRM',
+            'Operations',
+            'Accounts',
+            'Purchase',
+            'IT',
+            'Architects',
+            'Admin',
+            'Manager'
         ];
     }
 

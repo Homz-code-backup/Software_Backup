@@ -199,9 +199,17 @@
                                                             value="<?= (int)$sp['id'] ?>"
                                                             id="sub<?= (int)$sp['id'] ?>"
                                                             data-page="<?= (int)$page['id'] ?>"
-                                                            data-module="<?= $moduleKey ?>">
-                                                        <label for="sub<?= (int)$sp['id'] ?>">
+                                                            data-module="<?= $moduleKey ?>"
+                                                            data-city-scope="<?= (int)($sp['requires_city_scope'] ?? 0) ?>"
+                                                            data-branch-scope="<?= (int)($sp['requires_branch_scope'] ?? 0) ?>">
+                                                        <label for="sub<?= (int)$sp['id'] ?>" class="<?= ($sp['requires_city_scope'] || $sp['requires_branch_scope']) ? 'scoped-label' : '' ?>" style="<?= ($sp['requires_city_scope'] || $sp['requires_branch_scope']) ? 'cursor:pointer;' : '' ?>">
                                                             <?= htmlspecialchars($sp['permission_name']) ?>
+                                                            <?php if (!empty($sp['requires_city_scope'])): ?>
+                                                                <i class="bi bi-geo-alt-fill text-info small" title="City Scope Required"></i>
+                                                            <?php endif; ?>
+                                                            <?php if (!empty($sp['requires_branch_scope'])): ?>
+                                                                <i class="bi bi-building text-warning small" title="Branch Scope Required"></i>
+                                                            <?php endif; ?>
                                                         </label>
                                                     </div>
                                                 <?php endforeach; ?>
@@ -288,8 +296,8 @@
     const employees = <?= json_encode($employees, JSON_HEX_TAG) ?>;
     const userCities = <?= json_encode($userCities, JSON_HEX_TAG) ?>;
     const userBranches = <?= json_encode($userBranches, JSON_HEX_TAG) ?>;
-    const LOAD_PERMISSION_ID = 14;
     let currentUserUserId = null;
+    let activeScopedSubId = null;
 
     /* Employee search */
     function filterEmployees() {
@@ -375,32 +383,51 @@
     });
 
     document.querySelectorAll('.sub-checkbox').forEach(s => {
+        const triggerModal = () => {
+            const isCityScope = s.dataset.cityScope === '1';
+            const isBranchScope = s.dataset.branchScope === '1';
+            if (s.checked && (isCityScope || isBranchScope)) {
+                const subName = s.nextElementSibling.textContent.trim();
+                openLoadPermissionModal(parseInt(s.value), subName, isCityScope, isBranchScope);
+            }
+        };
+
         s.onchange = () => {
             const page = s.dataset.page;
-            const subId = parseInt(s.value);
-
-            if (s.checked && subId === LOAD_PERMISSION_ID) {
-                const subName = s.nextElementSibling.textContent.trim();
-                openLoadPermissionModal(subId, subName);
-            }
-
+            triggerModal();
             document.getElementById('page' + page).checked =
-                document.querySelectorAll(
-                    `.sub-checkbox[data-page="${page}"]:checked`
-                ).length > 0;
+                document.querySelectorAll(`.sub-checkbox[data-page="${page}"]:checked`).length > 0;
         };
+
+        // Special handling for labels of scoped permissions
+        const label = s.nextElementSibling;
+        if (label && label.classList.contains('scoped-label')) {
+            label.addEventListener('click', (e) => {
+                if (s.checked) {
+                    e.preventDefault(); // Don't uncheck if already checked, just re-open modal
+                    triggerModal();
+                }
+                // If unchecked, the 'for' behavior handles checking and triggers onchange
+            });
+        }
     });
 
     /* Load Permission Modal Logic */
-    function openLoadPermissionModal(subId, subName) {
+    function openLoadPermissionModal(subId, subName, isCityScope, isBranchScope) {
+        activeScopedSubId = subId;
         document.getElementById('modalSubPermissionName').textContent = subName;
-        // Reset modal UI based on current selections
+
+        // Show/Hide radio options based on permission requirements
+        document.getElementById('scopeCity').parentElement.style.display = isCityScope ? 'inline-block' : 'none';
+        document.getElementById('scopeBranch').parentElement.style.display = isBranchScope ? 'inline-block' : 'none';
+
+        // Reset modal UI based on current selections or requirements
         const hasCities = document.querySelectorAll('.city-scope-checkbox:checked').length > 0;
         const hasBranches = document.querySelectorAll('.branch-scope-checkbox:checked').length > 0;
 
-        if (hasCities) {
+        if (isCityScope && (hasCities || !isBranchScope)) {
             document.getElementById('scopeCity').checked = true;
-        } else if (hasBranches) {
+        } else if (isBranchScope && (hasBranches || !isCityScope)) {
             document.getElementById('scopeBranch').checked = true;
         } else {
             document.getElementById('scopeAll').checked = true;

@@ -2,201 +2,248 @@
 
 class PermissionAdminRepository
 {
-    private PDO $pdo;
+    private PDO $db;
 
     public function __construct()
     {
-        $this->pdo = Database::getConnection();
+        $this->db = Database::getConnection();
     }
 
-    public function getActiveEmployees(): array
-    {
-        return $this->pdo
-            ->query("SELECT users.id as user_id, users.employee_id, employee.full_name FROM employee 
-            LEFT JOIN users ON employee.employee_id = users.employee_id            
-            WHERE users.status='Active'")
-            ->fetchAll(PDO::FETCH_ASSOC);
-    }
-
+    // Get all pages
     public function getAllPages(): array
     {
-        return $this->pdo
-            ->query("SELECT * FROM pages ORDER BY module, name")
-            ->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->db->query("SELECT * FROM pages ORDER BY module, name");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Get sub-permissions grouped by page_id
     public function getSubPermissionsByPage(): array
     {
-        $rows = $this->pdo->query("
-            SELECT * FROM sub_permissions
-            ORDER BY permission_name
-        ")->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->db->query("
+            SELECT 
+                sp.*,
+                sp.requires_city_scope as has_city_constraint,
+                sp.requires_branch_scope as has_branch_constraint
+            FROM sub_permissions sp
+            ORDER BY sp.page_id, sp.permission_name
+        ");
+        $subs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $out = [];
-        foreach ($rows as $r) {
-            $out[$r['page_id']][] = $r;
+        $grouped = [];
+        foreach ($subs as $sub) {
+            $grouped[$sub['page_id']][] = $sub;
         }
-        return $out;
+
+        return $grouped;
     }
 
+    // Get active employees
+    public function getActiveEmployees(): array
+    {
+        $stmt = $this->db->query("SELECT * FROM employee
+        LEFT JOIN users ON employee.employee_id = users.employee_id
+         WHERE users.status = 'active' ORDER BY full_name");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Get user page assignments
     public function getUserPageAssignments(): array
     {
-        $rows = $this->pdo->query("
-            SELECT employee_id, page_id
-            FROM page_permissions
-        ")->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->db->query("SELECT employee_id, page_id FROM page_permissions");
+        $assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $out = [];
-        foreach ($rows as $r) {
-            $out[$r['employee_id']][] = $r['page_id'];
+        $grouped = [];
+        foreach ($assignments as $a) {
+            $grouped[$a['employee_id']][] = $a['page_id'];
         }
-        return $out;
+
+        return $grouped;
     }
 
+    // Get user sub-permission assignments
     public function getUserSubAssignments(): array
     {
-        $rows = $this->pdo->query("
-            SELECT employee_id, sub_permission_id
-            FROM sub_permission_assignments
-        ")->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->db->query("SELECT employee_id, sub_permission_id FROM sub_permission_assignments");
+        $assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $out = [];
-        foreach ($rows as $r) {
-            $out[$r['employee_id']][] = $r['sub_permission_id'];
+        $grouped = [];
+        foreach ($assignments as $a) {
+            $grouped[$a['employee_id']][] = $a['sub_permission_id'];
         }
-        return $out;
+
+        return $grouped;
     }
 
+    // Get cities
     public function getCities(): array
     {
-        return $this->pdo->query("SELECT id, name FROM cities ORDER BY name ASC")
-            ->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->db->query("SELECT id, name FROM cities ORDER BY name");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Get branches
     public function getBranches(): array
     {
-        return $this->pdo->query("SELECT id, branch_name as name FROM branch ORDER BY branch_name ASC")
-            ->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->db->query("SELECT id, branch_name FROM branch ORDER BY branch_name");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Get user city assignments
     public function getUserCitiesAssignments(): array
     {
-        $rows = $this->pdo->query("SELECT user_id, city_id, sub_permission_id FROM user_cities")
-            ->fetchAll(PDO::FETCH_ASSOC);
-        $out = [];
-        foreach ($rows as $r) {
-            $out[$r['user_id']][] = $r['city_id'];
+        $stmt = $this->db->query("SELECT user_id, city_id, sub_permission_id FROM user_cities");
+        $assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $grouped = [];
+        foreach ($assignments as $a) {
+            $grouped[$a['user_id']][$a['sub_permission_id']][] = $a['city_id'];
         }
-        return $out;
+
+        return $grouped;
     }
 
+    // Get user branch assignments
     public function getUserBranchesAssignments(): array
     {
-        $rows = $this->pdo->query("SELECT user_id, branch_id, sub_permission_id FROM user_branches")
-            ->fetchAll(PDO::FETCH_ASSOC);
-        $out = [];
-        foreach ($rows as $r) {
-            $out[$r['user_id']][] = $r['branch_id'];
+        $stmt = $this->db->query("SELECT user_id, branch_id, sub_permission_id FROM user_branches");
+        $assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $grouped = [];
+        foreach ($assignments as $a) {
+            $grouped[$a['user_id']][$a['sub_permission_id']][] = $a['branch_id'];
         }
-        return $out;
+
+        return $grouped;
     }
 
-    public function updatePermissions(string $empId, array $pages, array $subs, array $cities = [], array $branches = []): void
+    // Helper: Get users.id from employee_id
+    private function getUserIdFromEmployeeId($employeeId): ?int
     {
-        $this->pdo->prepare("DELETE FROM page_permissions WHERE employee_id=?")
-            ->execute([$empId]);
+        $stmt = $this->db->prepare("SELECT id FROM users WHERE employee_id = ?");
+        $stmt->execute([$employeeId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? (int)$result['id'] : null;
+    }
 
-        $this->pdo->prepare("DELETE FROM sub_permission_assignments WHERE employee_id=?")
-            ->execute([$empId]);
+    // Update permissions for a user
+    public function updatePermissions($employeeId, array $pageIds, array $subPermissionIds, array $cities, array $branches): void
+    {
+        // Get the numeric user ID for foreign key constraints
+        $userId = $this->getUserIdFromEmployeeId($employeeId);
 
-        // Get user_id for user_cities and user_branches
-        $stmt = $this->pdo->prepare("SELECT id FROM users WHERE employee_id = ?");
-        $stmt->execute([$empId]);
-        $userId = $stmt->fetchColumn();
+        if (!$userId) {
+            throw new Exception("User not found for employee_id: {$employeeId}");
+        }
 
-        if ($userId) {
-            $this->pdo->prepare("DELETE FROM user_cities WHERE user_id=? AND sub_permission_id=14")->execute([$userId]);
-            $this->pdo->prepare("DELETE FROM user_branches WHERE user_id=? AND sub_permission_id=14")->execute([$userId]);
+        // Fetch which sub-permissions require scoping among the assigned ones
+        $placeholders = implode(',', array_fill(0, count($subPermissionIds) ?: 0, '?'));
+        $scopedSubs = [];
+        if (!empty($subPermissionIds)) {
+            $stmt = $this->db->prepare("SELECT id, requires_city_scope, requires_branch_scope FROM sub_permissions WHERE id IN ($placeholders)");
+            $stmt->execute($subPermissionIds);
+            $scopedSubs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
-            foreach ($cities as $cId) {
-                $this->pdo->prepare("INSERT INTO user_cities (user_id, city_id, sub_permission_id) VALUES (?,?,?)")
-                    ->execute([$userId, $cId, 14]);
-            }
+        // Delete existing assignments
+        $this->db->prepare("DELETE FROM page_permissions WHERE employee_id = ?")->execute([$employeeId]);
+        $this->db->prepare("DELETE FROM sub_permission_assignments WHERE employee_id = ?")->execute([$employeeId]);
+        $this->db->prepare("DELETE FROM user_cities WHERE user_id = ?")->execute([$userId]);
+        $this->db->prepare("DELETE FROM user_branches WHERE user_id = ?")->execute([$userId]);
 
-            foreach ($branches as $bId) {
-                $this->pdo->prepare("INSERT INTO user_branches (user_id, branch_id, sub_permission_id) VALUES (?,?,?)")
-                    ->execute([$userId, $bId, 14]);
+        // Insert new page assignments (uses employee_id)
+        $stmt = $this->db->prepare("INSERT INTO page_permissions (employee_id, page_id) VALUES (?, ?)");
+        foreach ($pageIds as $pageId) {
+            $stmt->execute([$employeeId, $pageId]);
+        }
+
+        // Insert new sub-permission assignments (uses employee_id)
+        $stmt = $this->db->prepare("INSERT INTO sub_permission_assignments (employee_id, sub_permission_id) VALUES (?, ?)");
+        foreach ($subPermissionIds as $subId) {
+            $stmt->execute([$employeeId, $subId]);
+        }
+
+        // Insert city assignments per scoped sub-permission
+        $cityStmt = $this->db->prepare("INSERT INTO user_cities (user_id, city_id, sub_permission_id) VALUES (?, ?, ?)");
+        foreach ($scopedSubs as $sub) {
+            if ($sub['requires_city_scope']) {
+                foreach ($cities as $cityId) {
+                    $cityStmt->execute([$userId, $cityId, $sub['id']]);
+                }
             }
         }
 
-        foreach ($pages as $p) {
-            $this->pdo->prepare(
-                "INSERT INTO page_permissions (employee_id,page_id) VALUES (?,?)"
-            )->execute([$empId, $p]);
-        }
-
-        foreach ($subs as $s) {
-            $this->pdo->prepare(
-                "INSERT INTO sub_permission_assignments (employee_id,sub_permission_id) VALUES (?,?)"
-            )->execute([$empId, $s]);
+        // Insert branch assignments per scoped sub-permission
+        $branchStmt = $this->db->prepare("INSERT INTO user_branches (user_id, branch_id, sub_permission_id) VALUES (?, ?, ?)");
+        foreach ($scopedSubs as $sub) {
+            if ($sub['requires_branch_scope']) {
+                foreach ($branches as $branchId) {
+                    $branchStmt->execute([$userId, $branchId, $sub['id']]);
+                }
+            }
         }
     }
-    public function addPage(array $d): void
+
+    // Add a new page
+    public function addPage(array $data): void
     {
-        $stmt = $this->pdo->prepare("
-        INSERT INTO pages (name,module,slug,icon,link)
-        VALUES (?,?,?,?,?)
-    ");
+        $stmt = $this->db->prepare("INSERT INTO pages (page_name, page_url, module, icon) VALUES (?, ?, ?, ?)");
         $stmt->execute([
-            $d['name'],
-            $d['module'],
-            $d['slug'],
-            $d['icon'],
-            $d['link']
+            $data['page_name'],
+            $data['page_url'],
+            $data['module'],
+            $data['icon'] ?? null
         ]);
     }
 
-    public function updatePage(array $d): void
+    // Update a page
+    public function updatePage(array $data): void
     {
-        $stmt = $this->pdo->prepare("
-        UPDATE pages SET name=?, module=?, slug=?, icon=?, link=?
-        WHERE id=?
-    ");
+        $stmt = $this->db->prepare("UPDATE pages SET page_name = ?, page_url = ?, module = ?, icon = ? WHERE id = ?");
         $stmt->execute([
-            $d['name'],
-            $d['module'],
-            $d['slug'],
-            $d['icon'],
-            $d['link'],
-            $d['id']
+            $data['page_name'],
+            $data['page_url'],
+            $data['module'],
+            $data['icon'] ?? null,
+            $data['id']
         ]);
     }
 
+    // Delete a page
     public function deletePage(int $id): void
     {
-        $this->pdo->prepare("DELETE FROM pages WHERE id=?")->execute([$id]);
+        $this->db->prepare("DELETE FROM pages WHERE id = ?")->execute([$id]);
     }
 
-    public function addSubPermission(array $d): void
+    // Add a new sub-permission
+    public function addSubPermission(array $data): void
     {
-        $stmt = $this->pdo->prepare("
-        INSERT INTO sub_permissions (page_id, permission_name, slug)
-        VALUES (?,?,?)
-    ");
-        $stmt->execute([$d['page_id'], $d['permission_name'], $d['slug']]);
+        $stmt = $this->db->prepare("INSERT INTO sub_permissions (page_id, permission_name, slug, requires_city_scope, requires_branch_scope) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([
+            $data['page_id'],
+            $data['permission_name'],
+            $data['slug'],
+            isset($data['requires_city_scope']) ? 1 : 0,
+            isset($data['requires_branch_scope']) ? 1 : 0
+        ]);
     }
 
-    public function updateSubPermission(array $d): void
+    // Update a sub-permission
+    public function updateSubPermission(array $data): void
     {
-        $stmt = $this->pdo->prepare("
-        UPDATE sub_permissions SET permission_name=?, slug=?
-        WHERE id=?
-    ");
-        $stmt->execute([$d['permission_name'], $d['slug'], $d['id']]);
+        $stmt = $this->db->prepare("UPDATE sub_permissions SET page_id = ?, permission_name = ?, slug = ?, requires_city_scope = ?, requires_branch_scope = ? WHERE id = ?");
+        $stmt->execute([
+            $data['page_id'],
+            $data['permission_name'],
+            $data['slug'],
+            isset($data['requires_city_scope']) ? 1 : 0,
+            isset($data['requires_branch_scope']) ? 1 : 0,
+            $data['id']
+        ]);
     }
 
+    // Delete a sub-permission
     public function deleteSubPermission(int $id): void
     {
-        $this->pdo->prepare("DELETE FROM sub_permissions WHERE id=?")->execute([$id]);
+        $this->db->prepare("DELETE FROM sub_permissions WHERE id = ?")->execute([$id]);
     }
 }

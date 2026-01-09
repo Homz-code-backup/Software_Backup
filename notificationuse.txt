@@ -1,8 +1,0 @@
-// used in app/Services/SuperAdminPermissionService.php
-        (new NotificationService())->notifyUser(
-            $_SESSION['user_id'],
-            'System Notification',
-            'Permissions have been assigned to'.$employeeName,
-            '/dashboard',
-            'success'
-        );
